@@ -1,11 +1,11 @@
-# AI Road Safety Recommendation and Risk Intelligence System 🚦
+# CityBrain AI - Smart Traffic Intelligence Platform 🚦
 
-A full-stack, AI-powered smart city platform designed to analyze, predict, and mitigate road accidents.
+A full-stack, AI-powered smart city platform using Machine Learning, Geospatial Analysis, and Real-Time Risk Prediction to analyze and mitigate road accidents.
 
 This system moves beyond basic analytics to provide:
 1. **Real-time Risk Prediction:** Uses Machine Learning (Random Forest / XGBoost) to classify accident risks based on time, weather, and traffic data.
 2. **Infrastructure Intelligence:** A rule-based recommender that dynamically identifies missing streetlights, dangerous highway stretches, and traffic hotspots.
-3. **Spatial Intelligence:** Implements heatmaps to isolate crash hotspots.
+3. **Spatial Intelligence:** Implements heatmaps and DBSCAN clustering to isolate crash hotspots.
 4. **Social Sentiment Context:** Natural Language Processing (NLP) against social media complaints to find friction between public sentiment and actual crash data.
 5. **Insurance Analytics:** Models estimated insurance claim amounts based on accident severity and vehicles involved.
 6. **Explainable AI (XAI):** Uses SHAP values to explain the "why" behind every risk prediction directly in the UI.
@@ -22,6 +22,7 @@ road-safety-ai/
 │   ├── model.py             # Random Forest training & inference logic
 │   ├── sentiment.py         # NLP text sentiment analysis rules using TextBlob
 │   ├── recommendation.py    # Rule-engine for Smart City Infrastructure insights
+│   ├── ui_components.py     # Premium design framework module
 │   └── xai.py               # Explains ML decisions using SHAP
 │
 ├── app.py                   # Main Streamlit Application Dashboard
