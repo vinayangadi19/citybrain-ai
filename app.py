@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import folium
 from streamlit_folium import st_folium
+import streamlit.components.v1 as components
 from folium.plugins import HeatMap, MarkerCluster
 import time
 
@@ -118,27 +119,52 @@ with tab2:
     st.markdown("### Geospatial Hotspots & DBSCAN Clustering", help="Toggle DBSCAN Machine Learning to mathematically group geometric anomalies on the map grid.")
     enable_dbscan = st.toggle("Enable DBSCAN Neural Clustering Overlay", value=True)
     
-    if len(filtered_df) > 0:
+    if len(filtered_df) == 0:
+        st.warning("⚠️ No data points available for the selected filters to render the map.")
+    else:
         with st.spinner("Rendering geospatial matrices..."):
             center_lat = filtered_df['Latitude'].mean()
             center_lon = filtered_df['Longitude'].mean()
+            
             m = folium.Map(location=[center_lat, center_lon], zoom_start=11, tiles="CartoDB dark_matter")
             
+            # Base Heatmap
             heat_data = [[row['Latitude'], row['Longitude']] for index, row in filtered_df.iterrows()]
-            HeatMap(heat_data, radius=12, blur=15).add_to(m)
+            HeatMap(heat_data, radius=12, blur=15, name="Density Heatmap").add_to(m)
             
+            # Base Markers (Clustered to prevent browser lag)
+            marker_cluster = MarkerCluster(name="Accident Locations").add_to(m)
+            sample_df = filtered_df.head(1000) # Process max 1000 points to keep Streamlit snappy
+            for _, row in sample_df.iterrows():
+                folium.CircleMarker(
+                    location=[row['Latitude'], row['Longitude']],
+                    radius=3,
+                    color="gray",
+                    fill=True,
+                    popup=f"Severity: {row['Severity']}<br>Cause: {row['Cause']}"
+                ).add_to(marker_cluster)
+            
+            # Optional DBSCAN Overlay for severe clusters
             if enable_dbscan:
                 map_pts = perform_dbscan_clustering(filtered_df[filtered_df['Severity'] == 'High'].copy())
                 map_pts = map_pts[map_pts['Cluster_ID'] != -1].head(1000)
-                colors = ['red', 'blue', 'green', 'purple', 'orange', 'darkred']
+                colors = ['#ff7b72', '#58a6ff', '#3fb950', '#d2a8ff', '#f0883e', '#e34c26']
                 for _, row in map_pts.iterrows():
                     c_color = colors[int(row['Cluster_ID']) % len(colors)]
                     folium.CircleMarker(
-                        location=[row['Latitude'], row['Longitude']], radius=6, color=c_color, fill=True,
+                        location=[row['Latitude'], row['Longitude']], 
+                        radius=8, 
+                        color=c_color, 
+                        fill=True,
+                        fill_opacity=0.8,
+                        weight=2,
                         popup=f"<b>DBSCAN Zone {row['Cluster_ID']}</b><br>Cause: {row['Cause']}"
                     ).add_to(m)
                     
-            st_folium(m, width=1200, height=600, returned_objects=[])
+            folium.LayerControl().add_to(m)
+            
+            # Failsafe rendering: bypass st_folium and inject raw HTML iframe
+            components.html(m._repr_html_(), height=600)
 
 # --- TAB 3: SCENARIO SIMULATOR ---
 with tab3:
